@@ -1,0 +1,42 @@
+{
+  "name": "mr_approvals",
+  "version": "0.0.1",
+  "description": "Use awarded up votes as MR approvals",
+  "main": "src/content.ts",
+  "scripts": {
+    "build": "yarn build:types && yarn build:js  && yarn copy:assets",
+    "clean": "rm -r dist/ && mkdir dist/",
+    "check:types": "tsc --noEmit",
+    "copy:assets": "cp -R manifest.json images dist",
+    "build:js": "babel ./src --out-dir dist --extensions '.ts'",
+    "build:types": "tsc --emitDeclarationOnly --declaration",
+    "lint": "yarn check:types && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git url"
+  },
+  "author": "isa-bel",
+  "license": "MIT",
+  "keywords": [
+    "approvals",
+    "extension",
+    "gitlab"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+    "@babel/preset-env": "^7.6.0",
+    "@babel/preset-typescript": "^7.6.0",
+    "@typescript-eslint/eslint-plugin": "^2.3.0",
+    "@typescript-eslint/parser": "^2.3.0",
+    "eslint": "^6.4.0",
+    "eslint-config-prettier": "^6.3.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier": "^1.18.2",
+    "typescript": "^3.6.3"
+  }
+}
