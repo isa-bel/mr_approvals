@@ -1,0 +1,28 @@
+{
+  "name": "MR Approvals",
+  "version": "1.0",
+  "description": "Use awarded up votes as MR approvals.",
+  "manifest_version": 2,
+  "author": "isa-bel",
+  "permissions": [
+    "https://gitlab.com/*/merge_requests/*",
+    "https://*/merge_requests/*"
+  ],
+  "icons": {
+    "16": "images/approvals16.png",
+    "32": "images/approvals32.png",
+    "48": "images/approvals48.png",
+    "128": "images/approvals128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gitlab.com/*/merge_requests/*",
+        "https://*/merge_requests/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}
