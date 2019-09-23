@@ -14,60 +14,48 @@ const disabledMergeClass = 'js-disabled-merge-button';
 const DISABLED = 'disabled';
 const SELF = 'you';
 const GITLAB = 'GitLab';
+const COMMA_SPACE = ', ';
 const MERGE_REQUEST_PATH = /^\/[a-z0-9\-_\/]+\/merge_requests\/.*/;
 const MIN_APPROVALS = 2;
 // Messages
 const CHANGES_REQUESTED_MSG = 'Some reviewers requested changes. Please address those.';
 const APPROVALS_REQUIRED_MSG = 'Requires 2 or more approvals.';
 
-const debugging = false;
+const debugging = true;
 const log = (...args: any): boolean | void => debugging && console.log(...args);
 
-function selfVote(voters: string): boolean {
-  log({ voters });
+export const authorVote = (voters: string, mrAuthor: string) => {
+  log({ voters, mrAuthor });
 
-  // Case 'you, Alex Doe, and Alix Dae'
-  const votersList = voters.toLowerCase().split(', ');
-  if (votersList.includes(SELF)) {
-    log('Self vote');
-    return true;
-  }
+  // Case 'AUTHOR, Alex Doe, and Alix Dae'
+  const votersList = voters
+    .toLowerCase()
+    .replace(', and ', COMMA_SPACE)
+    .replace(' and ', COMMA_SPACE)
+    .split(COMMA_SPACE);
 
-  // Case 'you and Alex Doe' or 'Alex Doe and you'
-  if (votersList.length === 1) {
-    log('One or two votes');
-    if (votersList[0].split(' and ').includes(SELF)) {
-      log('Self vote and friend');
-      return true;
-    }
-  }
+  return votersList.includes(mrAuthor.toLowerCase());
+};
 
-  return false;
-}
-
-function getVotes(votesSelector: string, isMRAuthor: boolean): number {
-  const votesCounter = document.querySelector(votesSelector);
+export const getVotes = (votesCounter: HTMLElement, mrAuthor: string) => {
   if (!votesCounter) {
     return 0;
   }
 
   const votes = parseInt(votesCounter.textContent || '0', 10);
-  log({ votes, isMRAuthor });
-  if (!isMRAuthor) {
-    return votes;
-  }
+  log({ votes, mrAuthor });
 
   const votesButton = votesCounter.parentElement as HTMLElement;
   const dataTitle = votesButton.dataset.title;
   const dataOriginalTitle = votesButton.dataset.originalTitle;
-  if (selfVote(dataTitle || dataOriginalTitle || '')) {
+  if (authorVote(dataTitle || dataOriginalTitle || '', mrAuthor)) {
     return votes - 1;
   }
 
   return votes;
-}
+};
 
-function disableMergeButton(mergeButton: HTMLButtonElement, message: string): void {
+export const disableMergeButton = (mergeButton: HTMLButtonElement, message: string) => {
   log('Disable button', mergeButton);
   mergeButton.setAttribute(DISABLED, DISABLED);
   mergeButton.classList.replace(acceptMergeClass, disabledMergeClass);
@@ -82,9 +70,9 @@ function disableMergeButton(mergeButton: HTMLButtonElement, message: string): vo
 
   (mergeButton.parentElement as HTMLElement).insertAdjacentHTML('afterend', `<span class="bold">${message}</span>`);
   log('Appended message', mergeButton.parentElement);
-}
+};
 
-function verifyApprovals(): void {
+function verifyApprovals() {
   // Host includes 'gitlab'
   const hostname = window.location.hostname;
   if (!hostname.split('.').includes(GITLAB.toLowerCase())) {
@@ -111,19 +99,21 @@ function verifyApprovals(): void {
     return;
   }
 
-  const mrAuthor = (document.querySelector(authorSelector) as HTMLElement).dataset.username;
+  const authorLink = document.querySelector(authorSelector) as HTMLElement;
+  const mrAuthorUser = authorLink.dataset.username;
+  const mrAuthorName = authorLink.dataset.name || '';
   const currentUser = (document.querySelector(profileSelector) as HTMLElement).dataset.user;
-  const downVotes = getVotes(downVotesSelector, mrAuthor === currentUser);
+  const mrAuthor = mrAuthorUser === currentUser ? SELF : mrAuthorName;
+
+  const downVotes = getVotes(document.querySelector(downVotesSelector), mrAuthor);
   if (downVotes > 0) {
     disableMergeButton(mergeButton, CHANGES_REQUESTED_MSG);
     return;
   }
 
-  const upVotes = getVotes(upVotesSelector, mrAuthor === currentUser);
+  const upVotes = getVotes(document.querySelector(upVotesSelector), mrAuthor);
   if (upVotes < MIN_APPROVALS) {
     disableMergeButton(mergeButton, APPROVALS_REQUIRED_MSG);
     return;
   }
 }
-
-verifyApprovals();

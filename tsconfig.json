@@ -2,8 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "moduleResolution": "node",
-    "strict": true,
-    "esModuleInterop": true
+    "strict": true
   },
   "include": [
     "src"
